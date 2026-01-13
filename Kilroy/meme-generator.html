@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Generator - Was Here</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC971;
+            --accent: #C5A3FF;
+            --dark: #2A1B3D;
+            --light: #FFF5F7;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 var(--secondary);
+            animation: bounce 0.8s ease-out 0.3s backwards;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--accent);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--light) 0%, #FFF 100%);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(197, 163, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .upload-area:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: var(--light);
+            transform: scale(1.02);
+        }
+
+        .upload-area.has-image {
+            border-style: solid;
+            border-color: var(--primary);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+        }
+
+        .canvas-container {
+            margin: 25px 0;
+            text-align: center;
+            background: #F5F5F5;
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #memeCanvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        #generateBtn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.5);
+        }
+
+        #generateBtn:active {
+            transform: translateY(0);
+        }
+
+        #downloadBtn {
+            background: var(--secondary);
+            color: var(--dark);
+            box-shadow: 0 4px 15px rgba(254, 201, 113, 0.4);
+        }
+
+        #downloadBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(254, 201, 113, 0.5);
+        }
+
+        #downloadBtn:active {
+            transform: translateY(0);
+        }
+
+        #downloadBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview-text {
+            color: #999;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Meme Generator</h1>
+        <p class="subtitle">Create your "[NAME] WAS HERE" masterpiece!</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📸</div>
+            <p><strong>Click to upload your character image</strong></p>
+            <p style="font-size: 0.85rem; color: #999; margin-top: 5px;">PNG images work best</p>
+            <input type="file" id="imageUpload" accept="image/*">
+        </div>
+
+        <div class="input-group">
+            <label for="nameInput">Who was here?</label>
+            <input type="text" id="nameInput" placeholder="Enter a name..." value="PEPE">
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="memeCanvas"></canvas>
+        </div>
+        <p class="preview-text">Preview will appear above after generating</p>
+
+        <div class="button-group">
+            <button id="generateBtn"><span>✨ Generate Meme</span></button>
+            <button id="downloadBtn" disabled><span>💾 Download</span></button>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const uploadArea = document.getElementById('uploadArea');
+        const nameInput = document.getElementById('nameInput');
+        const canvas = document.getElementById('memeCanvas');
+        const ctx = canvas.getContext('2d');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let uploadedImage = null;
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => imageUpload.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--primary)';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'var(--accent)';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--accent)';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                loadImage(file);
+            }
+        });
+
+        // File input change
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadImage(file);
+            }
+        });
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    uploadedImage = img;
+                    uploadArea.classList.add('has-image');
+                    uploadArea.querySelector('.upload-icon').textContent = '✅';
+                    uploadArea.querySelector('p strong').textContent = 'Image loaded! Ready to generate.';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Generate meme
+        generateBtn.addEventListener('click', generateMeme);
+
+        // Allow Enter key to generate
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && uploadedImage) {
+                generateMeme();
+            }
+        });
+
+        function generateMeme() {
+            if (!uploadedImage) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            const name = nameInput.value.trim() || 'PEPE';
+
+            // Set canvas size to match image
+            canvas.width = uploadedImage.width;
+            canvas.height = uploadedImage.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the image
+            ctx.drawImage(uploadedImage, 0, 0);
+
+            // Prepare text
+            const text = `${name.toUpperCase()} WAS HERE`;
+            
+            // Font sizing based on canvas width
+            const fontSize = Math.max(canvas.width * 0.08, 30);
+            ctx.font = `bold ${fontSize}px 'Fredoka One', cursive`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+
+            // Position text near bottom with slight overlap effect
+            const textY = canvas.height - (fontSize * 0.3);
+
+            // Draw text with thick outline
+            ctx.lineWidth = Math.max(fontSize * 0.15, 8);
+            ctx.strokeStyle = '#2A1B3D';
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+            
+            // Multiple stroke passes for extra thickness
+            for (let i = 0; i < 3; i++) {
+                ctx.strokeText(text, canvas.width / 2, textY);
+            }
+
+            // Fill text with white
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(text, canvas.width / 2, textY);
+
+            // Enable download button
+            downloadBtn.disabled = false;
+        }
+
+        // Download meme
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `${nameInput.value.trim() || 'meme'}-was-here.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
